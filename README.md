@@ -1,6 +1,6 @@
 # Redmine OAuth2 Email Integration for Office 365
 
-This repository contains the necessary files and instructions to enable Redmine to receive emails from Office 365 using OAuth2 authentication via IMAP.
+This repository contains the necessary files and instructions to enable Redmine to receive emails from Office 365 using OAuth2 authentication via IMAP. I can't claim to have invented this, it's just pulled together from various forum posts and put here in the hope that it will help someone else one day.
 
 ## Background
 
