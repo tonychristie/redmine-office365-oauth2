@@ -23,7 +23,7 @@ There are two ways to get the token. Choose one:
 | Token flow | Client credentials, `IMAP.AccessAsApp` | Resource owner password (ROPC), `IMAP.AccessAsUser.All` |
 | Mailboxes the app can read | Only those granted to it in Exchange Online | The signed-in user's mailbox |
 
-The app-only method is recommended. Microsoft advises against the password flow, and it stops working when the account needs MFA.
+The app-only method is recommended. Microsoft advises against the password flow, and it cannot be used when the account needs MFA (see 4.1).
 
 ## Prerequisites
 
@@ -147,7 +147,7 @@ docker exec -e password -u redmine redmine bundle exec rake redmine:email:receiv
 #### 4.1 Configure the Azure AD Application
 
 1. Register an application in Azure AD
-2. Grant the following API permissions:
+2. Grant the following delegated API permissions. The portal lists both under **Microsoft Graph**:
    - `IMAP.AccessAsUser.All`
    - `User.Read`
 3. Enable "Allow public client flows" for the application
@@ -155,6 +155,10 @@ docker exec -e password -u redmine redmine bundle exec rake redmine:email:receiv
    - Client ID
    - Client Secret
    - Tenant ID
+
+**Token scope:** keep the scopes in `oauth_mail.sh` on the Outlook resource, `https://outlook.office.com/IMAP.AccessAsUser.All` and `https://outlook.office.com/User.Read`, even though the portal shows the permissions under Microsoft Graph. Microsoft's [IMAP OAuth documentation](https://learn.microsoft.com/en-us/exchange/client-developer/legacy-protocols/how-to-authenticate-an-imap-pop-smtp-application-by-using-oauth) requires the Outlook resource URL in the scope. A token for `https://graph.microsoft.com/...` is a token for the Graph API, not for IMAP. All scopes in one token request must be for the same resource, so do not mix `outlook.office.com` and `graph.microsoft.com` scopes; Microsoft Entra ID rejects that request.
+
+**MFA:** the password flow cannot answer an MFA challenge. If the tenant requires MFA for the account (Security Defaults or a Conditional Access policy), the token request fails with `AADSTS50079` (or `AADSTS50076`). The only way to keep this method working is to exclude the mailbox account from the MFA requirement. That leaves an account that signs in with a password alone, and Security Defaults does not allow exclusions, so you would have to replace it with Conditional Access. The app-only method (step 3) does not sign in as a user, so MFA does not apply to it.
 
 #### 4.2 Configure the Email Retrieval Script
 
